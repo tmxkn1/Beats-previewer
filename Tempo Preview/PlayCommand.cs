@@ -1,10 +1,7 @@
 ﻿using System;
-using System.Diagnostics;
-using System.Media;
 using System.Threading.Tasks;
 using System.Windows;
 using System.Windows.Input;
-using Tempo_Preview.PrecisionDelay;
 
 namespace Tempo_Preview
 {
