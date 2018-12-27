@@ -75,7 +75,10 @@
       <Generator>MSBuild:Compile</Generator>
       <SubType>Designer</SubType>
     </ApplicationDefinition>
+    <Compile Include="BackgroundBeatsPlayer.cs" />
     <Compile Include="PlayCommand.cs" />
+    <Compile Include="PrecisionDelay\DelayHandler.cs" />
+    <Compile Include="PrecisionDelay\Spinner.cs" />
     <Compile Include="TpViewModel.cs" />
     <Page Include="MainWindow.xaml">
       <Generator>MSBuild:Compile</Generator>
@@ -117,9 +120,6 @@
     <None Include="App.config" />
   </ItemGroup>
   <ItemGroup>
-    <None Include="metronome_beat.mp3" />
-  </ItemGroup>
-  <ItemGroup>
     <None Include="metronome_beat.wav" />
   </ItemGroup>
   <ItemGroup>
@@ -127,9 +127,6 @@
   </ItemGroup>
   <ItemGroup>
     <None Include="Resources\music-beat-icon-08838.png" />
-  </ItemGroup>
-  <ItemGroup>
-    <Resource Include="music_beat_icon_08838_4Qp_icon.ico" />
   </ItemGroup>
   <ItemGroup>
     <BootstrapperPackage Include=".NETFramework,Version=v4.6.1">
@@ -142,6 +139,9 @@
       <ProductName>.NET Framework 3.5 SP1</ProductName>
       <Install>false</Install>
     </BootstrapperPackage>
+  </ItemGroup>
+  <ItemGroup>
+    <Resource Include="music_beat_icon_08838_4Qp_icon.ico" />
   </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
 </Project>

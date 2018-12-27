@@ -4,6 +4,7 @@ using System.Media;
 using System.Threading.Tasks;
 using System.Windows;
 using System.Windows.Input;
+using Tempo_Preview.PrecisionDelay;
 
 namespace Tempo_Preview
 {
@@ -11,10 +12,9 @@ namespace Tempo_Preview
     {
         private readonly TpViewModel _tpViewModel;
         private double[] _beats;
-        private bool IsPlaying;
-        private const int BaseSpeed = 1000;
+        private bool _isPlaying;
 
-        private readonly SoundPlayer _beatSoundPlayer = new SoundPlayer(Properties.Resources.metronome_beat);
+        private BackgroundBeatsPlayer _backgroundBeatsPlayer;
         private EventHandler _canExecuteChanged;
 
         public PlayCommand(TpViewModel tpViewModel)
@@ -24,12 +24,12 @@ namespace Tempo_Preview
 
         public bool CanExecute(object parameter)
         {
-            return !IsPlaying && !string.IsNullOrEmpty(_tpViewModel.BeatsText);
+            return !_isPlaying && !string.IsNullOrEmpty(_tpViewModel.BeatsText);
         }
 
         public async void Execute(object parameter)
         {
-            if (IsPlaying)
+            if (_isPlaying)
                 return;
 
             try
@@ -39,7 +39,7 @@ namespace Tempo_Preview
             }
             catch (FormatException e)
             {
-                MessageBox.Show($"Cannot parse beats. Please double check your entry.\n\n {e.GetBaseException().Message}", "Fail to play",
+                MessageBox.Show($"Cannot parse beats. Please double check your entry.\n\n\nError message:\n\n{e.GetBaseException().Message}", "Fail to play",
                     MessageBoxButton.OK, MessageBoxImage.Error);
             }
         }
@@ -53,14 +53,18 @@ namespace Tempo_Preview
             }
             remove
             {
-                _canExecuteChanged -= value;
+                if (_canExecuteChanged != null)
+                {
+                    _canExecuteChanged -= value;
+                }
+
                 CommandManager.RequerySuggested -= value;
             }
         }
 
-        public void RaiseCanExecuteChanged()
+        private void RaiseCanExecuteChanged()
         {
-            if (!IsPlaying)
+            if (!_isPlaying)
                 OnCanExecuteChanged();
         }
 
@@ -69,33 +73,15 @@ namespace Tempo_Preview
 
         private async Task PlayBeats()
         {
-            IsPlaying = true;
-            CommandManager.InvalidateRequerySuggested();
-            _beatSoundPlayer.Load();
-            var sw = new Stopwatch();
-            sw.Start();
-            foreach (var beat in _beats)
-            {
-                var startTime = sw.ElapsedMilliseconds;
-                PlayABeat();
-                Debug.WriteLine($"Time elpased {sw.ElapsedMilliseconds - startTime}");
-                var timeDelay = BeatToTimeDelay(beat);
-                await Task.Delay((int)(timeDelay + sw.ElapsedMilliseconds - startTime));
-                Debug.WriteLine($"Time delay: {timeDelay}, Start time: {startTime}, endTime = {sw.ElapsedMilliseconds}, elapsed = {sw.ElapsedMilliseconds - startTime}");
-            }
-
-            IsPlaying = false;
+            _isPlaying = true;
             RaiseCanExecuteChanged();
-        }
 
-        private int BeatToTimeDelay(double beat)
-        {
-            return (int)(beat * BaseSpeed * _tpViewModel.PlaybackSpeed);
-        }
+            _backgroundBeatsPlayer = new BackgroundBeatsPlayer(_tpViewModel.PlaybackSpeed, _beats);
+            await _backgroundBeatsPlayer.Play();
+            _backgroundBeatsPlayer.Dispose();
 
-        private void PlayABeat()
-        {
-            _beatSoundPlayer.Play();
+            _isPlaying = false;
+            RaiseCanExecuteChanged();
         }
     }
 }
